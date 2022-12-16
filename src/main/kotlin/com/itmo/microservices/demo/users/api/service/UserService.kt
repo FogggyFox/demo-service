@@ -1,12 +1,13 @@
 package com.itmo.microservices.demo.users.api.service
 
-import com.itmo.microservices.demo.users.api.model.AppUserModel
+import com.itmo.microservices.demo.users.api.model.UserDTO
 import com.itmo.microservices.demo.users.api.model.RegistrationRequest
-import org.springframework.security.core.userdetails.UserDetails
+import java.util.UUID
 
 interface UserService {
-    fun findUser(username: String): AppUserModel?
-    fun registerUser(request: RegistrationRequest)
-    fun getAccountData(requester: UserDetails): AppUserModel
-    fun deleteUser(user: UserDetails)
+    fun findUser(id: UUID): UserDTO?
+    fun registerUser(request: RegistrationRequest): UserDTO
+    fun getAccountData(id: UUID): UserDTO
+    fun findUserbyName(name: String): UserDTO?
+
 }
