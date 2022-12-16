@@ -26,7 +26,7 @@ class DeliveryController(private val deliveryService: DeliveryService) {
     )
     fun getDeliverySlots(@PathVariable number: Int): List<Int> = deliveryService.getDeliverySlots(number)
 
-    @PostMapping("/orders/{order_id}/delivery?slot={slot_in_sec}")
+    @PostMapping("/orders/{OrderId}/delivery?slot={SlotInSec}")
     @Operation(
         summary = "Set time of delivery",
         responses = [
@@ -36,8 +36,8 @@ class DeliveryController(private val deliveryService: DeliveryService) {
         ],
         security = [SecurityRequirement(name = "bearerAuth")]
     )
-    fun setTimeOfDelivery(@PathVariable order_id: UUID, @PathVariable slot_in_sec: Int): BookingDTO =
-        deliveryService.setTime(order_id, slot_in_sec)
+    fun setTimeOfDelivery(@PathVariable OrderId: UUID, @PathVariable SlotInSec: Int): BookingDTO =
+        deliveryService.setTime(OrderId, SlotInSec)
 
     @GetMapping("/_internal/deliveryLog/{orderId}")
     @Operation(
