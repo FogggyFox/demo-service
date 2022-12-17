@@ -1,5 +1,8 @@
 package com.itmo.microservices.demo.delivery.api.controller
 
+import com.itmo.microservices.demo.delivery.api.event.DeliveryAggregate
+import com.itmo.microservices.demo.delivery.api.event.DeliveryAggregateState
+import com.itmo.microservices.demo.delivery.api.event.DeliverySlotBookedEvent
 import com.itmo.microservices.demo.delivery.api.model.BookingDTO
 import com.itmo.microservices.demo.delivery.api.model.DeliveryInfoRecord
 import com.itmo.microservices.demo.delivery.api.service.DeliveryService
@@ -7,12 +10,14 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import org.hibernate.criterion.Order
 import org.springframework.web.bind.annotation.*
+import ru.quipy.core.EventSourcingService
 import java.util.*
 
 @RestController
 @RequestMapping("")
-class DeliveryController(private val deliveryService: DeliveryService) {
+class DeliveryController(val deliveryService: DeliveryService, val deliveryEsService: EventSourcingService<UUID, DeliveryAggregate, DeliveryAggregateState>) {
 
     @GetMapping("/delivery/slots?number={number}")
     @Operation(
@@ -36,8 +41,8 @@ class DeliveryController(private val deliveryService: DeliveryService) {
         ],
         security = [SecurityRequirement(name = "bearerAuth")]
     )
-    fun setTimeOfDelivery(@PathVariable OrderId: UUID, @PathVariable SlotInSec: Int): BookingDTO =
-        deliveryService.setTime(OrderId, SlotInSec)
+    fun setTimeOfDelivery(@PathVariable OrderId: UUID, @PathVariable SlotInSec: Int): DeliverySlotBookedEvent =
+        deliveryEsService.create { it.setTime(OrderId, SlotInSec) }
 
     @GetMapping("/_internal/deliveryLog/{orderId}")
     @Operation(
