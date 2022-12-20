@@ -1,4 +1,4 @@
-package com.itmo.microservices.demo.delivery.api.event
+package com.itmo.microservices.demo.users.event
 import com.itmo.microservices.demo.users.api.model.RegistrationRequest
 import ru.quipy.core.annotations.DomainEvent;
 import ru.quipy.domain.Event;
