@@ -1,7 +1,6 @@
-package com.itmo.microservices.demo.delivery.api.event
+package com.itmo.microservices.demo.users.event
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.itmo.microservices.demo.delivery.api.model.DeliverySubmissionOutcome
 import com.itmo.microservices.demo.users.api.model.RegistrationRequest
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
