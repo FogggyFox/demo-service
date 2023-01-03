@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.itmo.microservices.demo.users.api.model.RegistrationRequest
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
+import ru.quipy.core.annotations.StateTransitionFunc
 import ru.quipy.domain.AggregateState
 import java.util.*
 
@@ -13,19 +14,25 @@ class UserAggregateState: AggregateState<UUID, UserAggregate> {
     private var createdAt: Long = System.currentTimeMillis()
     private var updatedAt: Long = System.currentTimeMillis()
 
-    private var users = mutableMapOf<UUID, UserEntity>()
+    private lateinit var userDetails: UserEntity
     override fun getId() = userId
 
     fun register(request: RegistrationRequest): UserRegisteredEvent {
         return UserRegisteredEvent(request)
     }
+
+    @StateTransitionFunc
+    fun register(event: UserRegisteredEvent, id: UUID = UUID.randomUUID()) {
+        userId = id
+        userDetails.name = event.request.name
+        userDetails.password = event.request.password
+    }
 }
 
 data class UserEntity(
-    val id: UUID,
-    val name: String,
+    var name: String,
     @JsonIgnore
-    val password: String) {
+    var password: String) {
 
     fun userDetails(): UserDetails = User(name, password, emptyList())
 }
