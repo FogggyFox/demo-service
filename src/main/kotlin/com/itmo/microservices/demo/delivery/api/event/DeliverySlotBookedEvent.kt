@@ -7,7 +7,9 @@ const val DELIVERY_SLOT_BOOKED= "DELIVERY_SLOT_BOOKED"
 @DomainEvent(name = DELIVERY_SLOT_BOOKED)
 class DeliverySlotBookedEvent (
     val orderId: UUID,
-    val slotInSec: Int,
+    val slotInSec: Long,
+    val deliveryId: UUID,
+    val transactionId: UUID,
     createdAt: Long = System.currentTimeMillis()
 
 ) : Event<DeliveryAggregate>(
