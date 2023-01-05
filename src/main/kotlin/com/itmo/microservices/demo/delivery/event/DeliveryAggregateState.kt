@@ -1,7 +1,7 @@
-package com.itmo.microservices.demo.delivery.api.event
+package com.itmo.microservices.demo.delivery.event
 
+import com.itmo.microservices.demo.delivery.api.model.DeliveryModel
 import com.itmo.microservices.demo.delivery.api.model.DeliverySubmissionOutcome
-import org.springframework.web.bind.annotation.PathVariable
 import ru.quipy.core.annotations.StateTransitionFunc
 import ru.quipy.domain.AggregateState
 import java.util.*
@@ -12,31 +12,31 @@ class DeliveryAggregateState: AggregateState<UUID, DeliveryAggregate> {
     private lateinit var orderId: UUID
     private var createdAt: Long = System.currentTimeMillis()
     private var updatedAt: Long = System.currentTimeMillis()
+    var deliveryInfoRecords: MutableMap<UUID, DeliveryInfoRecordEntity> = mutableMapOf()
 
-    private lateinit var deliveryInfoRecord: DeliveryInfoRecordEntity
     override fun getId() = deliveryId
 
-    fun setTime(OrderId: UUID, SlotInSec: Long, deliveryId: UUID = UUID.randomUUID(), transactionId: UUID): DeliverySlotBookedEvent {
-        return DeliverySlotBookedEvent(OrderId, SlotInSec, deliveryId, transactionId)
+    fun setTime(d: DeliveryModel): DeliverySlotBookedEvent {
+            return DeliverySlotBookedEvent(d.orderId, d.slotInSec, d.deliveryId, d.transactionId, d.deliveryInfoRecordId)
     }
 
     @StateTransitionFunc
     fun setTime(event: DeliverySlotBookedEvent) {
         deliveryId = event.deliveryId
         orderId = event.orderId
-        deliveryInfoRecord.submittedTime = event.slotInSec
-        deliveryInfoRecord.transactionId  = event.transactionId
-        deliveryInfoRecord.submissionStartedTime = event.createdAt
+        deliveryInfoRecords[event.deliveryInfoRecordId]!!.submittedTime = event.slotInSec
+        deliveryInfoRecords[event.deliveryInfoRecordId]!!.transactionId  = event.transactionId
+        deliveryInfoRecords[event.deliveryInfoRecordId]!!.submissionStartedTime = event.createdAt
     }
 }
 
 data class DeliveryInfoRecordEntity(
+    var id: UUID,
     var outcome: DeliverySubmissionOutcome,
     var preparedTime: Long,
     var attempts: Int = 1,
     var submittedTime: Long,
     var transactionId: UUID,
     var submissionStartedTime: Long
-
 )
 

@@ -1,4 +1,4 @@
-package com.itmo.microservices.demo.delivery.api.event;
+package com.itmo.microservices.demo.delivery.event;
 import ru.quipy.core.annotations.AggregateType;
 import ru.quipy.domain.Aggregate;
 

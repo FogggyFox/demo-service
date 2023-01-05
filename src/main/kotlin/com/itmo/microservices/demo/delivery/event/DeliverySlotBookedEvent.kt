@@ -1,4 +1,4 @@
-package com.itmo.microservices.demo.delivery.api.event
+package com.itmo.microservices.demo.delivery.event
 import ru.quipy.core.annotations.DomainEvent;
 import ru.quipy.domain.Event;
 import java.util.*
@@ -10,6 +10,7 @@ class DeliverySlotBookedEvent (
     val slotInSec: Long,
     val deliveryId: UUID,
     val transactionId: UUID,
+    val deliveryInfoRecordId: UUID,
     createdAt: Long = System.currentTimeMillis()
 
 ) : Event<DeliveryAggregate>(
