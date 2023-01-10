@@ -2,10 +2,10 @@ package com.itmo.microservices.demo.delivery.event
 
 import com.itmo.microservices.demo.delivery.api.model.DeliveryModel
 import com.itmo.microservices.demo.delivery.api.model.DeliverySubmissionOutcome
+import com.itmo.microservices.demo.delivery.deliverySlots
 import ru.quipy.core.annotations.StateTransitionFunc
 import ru.quipy.domain.AggregateState
 import java.util.*
-
 
 class DeliveryAggregateState: AggregateState<UUID, DeliveryAggregate> {
     private lateinit var deliveryId: UUID
@@ -17,7 +17,8 @@ class DeliveryAggregateState: AggregateState<UUID, DeliveryAggregate> {
     override fun getId() = deliveryId
 
     fun setTime(d: DeliveryModel): DeliverySlotBookedEvent {
-            return DeliverySlotBookedEvent(d.orderId, d.slotInSec, d.deliveryId, d.transactionId, d.deliveryInfoRecordId)
+        deliverySlots.freeSlots.drop(d.slotInSec.toInt())
+        return DeliverySlotBookedEvent(d.orderId, d.slotInSec, d.deliveryId, d.transactionId, d.deliveryInfoRecordId)
     }
 
     @StateTransitionFunc

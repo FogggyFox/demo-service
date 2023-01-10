@@ -1,23 +1,24 @@
 package com.itmo.microservices.demo.delivery.api.controller
 
-import com.itmo.microservices.demo.delivery.api.event.DeliveryAggregate
-import com.itmo.microservices.demo.delivery.api.event.DeliveryAggregateState
-import com.itmo.microservices.demo.delivery.api.event.DeliverySlotBookedEvent
-import com.itmo.microservices.demo.delivery.api.model.BookingDTO
-import com.itmo.microservices.demo.delivery.api.model.DeliveryInfoRecord
-import com.itmo.microservices.demo.delivery.api.service.DeliveryService
+import com.itmo.microservices.demo.delivery.event.DeliveryAggregate
+import com.itmo.microservices.demo.delivery.event.DeliveryAggregateState
+import com.itmo.microservices.demo.delivery.event.DeliveryInfoRecordEntity
+import com.itmo.microservices.demo.delivery.event.DeliverySlotBookedEvent
+import com.itmo.microservices.demo.delivery.api.model.DeliveryModel
+import com.itmo.microservices.demo.delivery.deliverySlots
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
-import org.hibernate.criterion.Order
 import org.springframework.web.bind.annotation.*
 import ru.quipy.core.EventSourcingService
 import java.util.*
 
 @RestController
 @RequestMapping("")
-class DeliveryController(val deliveryService: DeliveryService, val deliveryEsService: EventSourcingService<UUID, DeliveryAggregate, DeliveryAggregateState>) {
+class DeliveryController(
+    val deliveryEsService: EventSourcingService<UUID, DeliveryAggregate, DeliveryAggregateState>
+) {
 
     @GetMapping("/delivery/slots?number={number}")
     @Operation(
@@ -29,9 +30,11 @@ class DeliveryController(val deliveryService: DeliveryService, val deliveryEsSer
         ],
         security = [SecurityRequirement(name = "bearerAuth")]
     )
-    fun getDeliverySlots(@PathVariable number: Int): List<Int> = deliveryService.getDeliverySlots(number)
+    fun getDeliverySlots(@PathVariable number: Int): MutableList<Int> {
+        return deliverySlots.freeSlots.asSequence().take(number).toMutableList()
+    }
 
-    @PostMapping("/orders/{OrderId}/delivery?slot={SlotInSec}")
+    @PostMapping("/orders/{d.orderId}/delivery?slot={d.slotInSec}")
     @Operation(
         summary = "Set time of delivery",
         responses = [
@@ -41,10 +44,11 @@ class DeliveryController(val deliveryService: DeliveryService, val deliveryEsSer
         ],
         security = [SecurityRequirement(name = "bearerAuth")]
     )
-    fun setTimeOfDelivery(@PathVariable OrderId: UUID, @PathVariable SlotInSec: Int): DeliverySlotBookedEvent =
-        deliveryEsService.create { it.setTime(OrderId, SlotInSec) }
+    fun setTimeOfDelivery(@PathVariable d: DeliveryModel): DeliverySlotBookedEvent {
+        return deliveryEsService.create { it.setTime(d) }
+    }
 
-    @GetMapping("/_internal/deliveryLog/{orderId}")
+    @GetMapping("/_internal//deliveryLog/{orderId}")
     @Operation(
         summary = "Get order delivery history",
         responses = [
@@ -54,6 +58,7 @@ class DeliveryController(val deliveryService: DeliveryService, val deliveryEsSer
         ],
         security = [SecurityRequirement(name = "bearerAuth")]
     )
-    fun getDeliveryHistory(@PathVariable orderId: UUID): List<DeliveryInfoRecord> =
-        deliveryService.getDeliveryHistory(orderId)
+    fun getDeliveryHistory(@PathVariable orderId: UUID): MutableMap<UUID, DeliveryInfoRecordEntity>?{
+        return deliveryEsService.getState(orderId)?.deliveryInfoRecords
+    }
 }
