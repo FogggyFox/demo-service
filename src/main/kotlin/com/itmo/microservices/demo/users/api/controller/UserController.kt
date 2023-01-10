@@ -1,18 +1,22 @@
 package com.itmo.microservices.demo.users.api.controller
 
-import com.itmo.microservices.demo.users.api.model.UserDTO
 import com.itmo.microservices.demo.users.api.model.RegistrationRequest
-import com.itmo.microservices.demo.users.api.service.UserService
+import com.itmo.microservices.demo.users.event.UserAggregate
+import com.itmo.microservices.demo.users.event.UserAggregateState
+import com.itmo.microservices.demo.users.event.UserRegisteredEvent
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.web.bind.annotation.*
+import ru.quipy.core.EventSourcingService
 import java.util.*
 
 @RestController
 @RequestMapping("/users")
-class UserController(private val userService: UserService) {
+class UserController (
+    val userEsService: EventSourcingService<UUID, UserAggregate, UserAggregateState>
+    ) {
 
     @PostMapping
     @Operation(
@@ -22,7 +26,9 @@ class UserController(private val userService: UserService) {
             ApiResponse(description = "Bad request", responseCode = "400", content = [Content()])
         ]
     )
-    fun register(@RequestBody request: RegistrationRequest): UserDTO = userService.registerUser(request)
+    fun register(@RequestBody request: RegistrationRequest): UserRegisteredEvent {
+        return userEsService.create { it.register(request)}
+    }
 
     @GetMapping("/{id}")
     @Operation(
@@ -33,7 +39,7 @@ class UserController(private val userService: UserService) {
         ],
         security = [SecurityRequirement(name = "bearerAuth")]
     )
-    fun getAccountData(@PathVariable id: UUID): UserDTO =
-            userService.getAccountData(id)
-
+    fun getAccountData(@PathVariable id: UUID): UserAggregateState? {
+        return userEsService.getState(id)
+    }
 }
